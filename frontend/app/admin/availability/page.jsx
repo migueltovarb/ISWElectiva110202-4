@@ -189,6 +189,25 @@ export default function Availability() {
                 onClick={() => handleRoomClick(room)}
                 className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
               >
+                {/* Imagen de la habitación */}
+                <div className="w-full h-40 relative bg-gray-100">
+                  {room.imagen ? (
+                    <Image
+                      src={
+                        room.imagen?.startsWith('http')
+                          ? room.imagen
+                          : `${process.env.NEXT_PUBLIC_API_BASE_URL.replace(/\/$/, '')}${room.imagen}`
+                      }
+                      alt={`Habitación ${room.numero_habitacion}`}
+                      fill
+                      className="object-cover rounded-t-lg"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-400">
+                      Sin imagen
+                    </div>
+                  )}
+                </div>
                 <div className="p-6">
                   <h3 className="text-xl font-semibold text-black mb-2">Habitación {room.numero_habitacion}</h3>
                   <p className="text-gray-600 mb-2">Tipo: {room.tipo_habitacion}</p>
@@ -224,6 +243,22 @@ export default function Availability() {
               </button>
 
               <h2 className="text-2xl font-bold mb-4 text-black">Detalles de la Habitación</h2>
+              {/* Imagen en el modal */}
+              {selectedRoom.imagen && (
+                <div className="mb-4 flex justify-center">
+                  <Image
+                    src={
+                      selectedRoom.imagen?.startsWith('http')
+                        ? selectedRoom.imagen
+                        : `${process.env.NEXT_PUBLIC_API_BASE_URL.replace(/\/$/, '')}${selectedRoom.imagen}`
+                    }
+                    alt={`Habitación ${selectedRoom.numero_habitacion}`}
+                    width={180}
+                    height={120}
+                    className="object-cover rounded"
+                  />
+                </div>
+              )}
               <div className="space-y-4">
                 <p className="text-black"><span className="font-semibold">Número:</span> {selectedRoom.numero_habitacion}</p>
                 <p className="text-black"><span className="font-semibold">Tipo:</span> {selectedRoom.tipo_habitacion}</p>

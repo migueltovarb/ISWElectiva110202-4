@@ -39,7 +39,8 @@ export default function Habitaciones() {
     numero_habitacion: '',
     precio: '',
     estado: true,
-    descripcion: ''
+    descripcion: '',
+    imagen: null
   });
 
   const handleLogout = () => {
@@ -53,7 +54,8 @@ export default function Habitaciones() {
       numero_habitacion: '',
       precio: '',
       estado: true,
-      descripcion: ''
+      descripcion: '',
+      imagen: null
     });
     setShowModal(true);
   };
@@ -66,7 +68,8 @@ export default function Habitaciones() {
       numero_habitacion: room.numero_habitacion,
       precio: room.precio,
       estado: room.estado,
-      descripcion: room.descripcion || ''
+      descripcion: room.descripcion || '',
+      imagen: null
     });
     setShowModal(true);
   };
@@ -89,6 +92,12 @@ export default function Habitaciones() {
     }
   };
 
+  const handleImageChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setFormData({ ...formData, imagen: e.target.files[0] });
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -105,10 +114,13 @@ export default function Habitaciones() {
       formDataToSend.append('precio', parseFloat(formData.precio));
       formDataToSend.append('estado', formData.estado);
       formDataToSend.append('descripcion', formData.descripcion || '');
+      if (formData.imagen) {
+        formDataToSend.append('imagen', formData.imagen);
+      }
       
       const response = await fetch(url, {
         method,
-        body: formDataToSend, // Enviar FormData directamente
+        body: formDataToSend,
       });
 
       if (response.ok) {
@@ -221,6 +233,7 @@ export default function Habitaciones() {
             <table className="min-w-full">
               <thead className="bg-[#8B4513] text-white">
                 <tr>
+                  <th className="py-3 px-4 text-left">Imagen</th>
                   <th className="py-3 px-4 text-left">Número</th>
                   <th className="py-3 px-4 text-left">Tipo</th>
                   <th className="py-3 px-4 text-left">Precio</th>
@@ -232,6 +245,26 @@ export default function Habitaciones() {
               <tbody>
                 {rooms.map((room) => (
                   <tr key={room.id} className="border-b border-gray-200 hover:bg-gray-50">
+                    <td className="py-3 px-4">
+                      {room.imagen ? (
+                        <div className="relative w-20 h-20">
+                          <Image
+                            src={
+                              room.imagen?.startsWith('http')
+                                ? room.imagen
+                                : `${process.env.NEXT_PUBLIC_API_BASE_URL.replace(/\/$/, '')}${room.imagen}`
+                            }
+                            alt={`Habitación ${room.numero_habitacion}`}
+                            fill
+                            className="object-cover rounded"
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-20 h-20 bg-gray-200 rounded flex items-center justify-center">
+                          <span className="text-gray-500">Sin imagen</span>
+                        </div>
+                      )}
+                    </td>
                     <td className="py-3 px-4 text-black">{room.numero_habitacion}</td>
                     <td className="py-3 px-4 text-black capitalize">{room.tipo_habitacion}</td>
                     <td className="py-3 px-4 text-black">${room.precio}</td>
@@ -271,7 +304,7 @@ export default function Habitaciones() {
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+        <div className="fixed inset-0 backdrop-blur-sm bg-black/10 flex items-center justify-center">
           <div className="bg-white p-8 rounded-lg w-96">
             <h2 className="text-2xl font-bold mb-4 text-black">
               {modalMode === 'create' ? 'Nueva Habitación' : 'Editar Habitación'}
@@ -328,6 +361,40 @@ export default function Habitaciones() {
                   className="w-full p-2 border rounded text-black"
                   rows="3"
                 />
+              </div>
+              <div className="mb-4">
+                <label className="block text-black mb-2">Imagen</label>
+                {/* Mostrar imagen actual si está en modo edición y existe imagen */}
+                {modalMode === 'edit' && selectedRoom && selectedRoom.imagen && (
+                  <div className="mb-2 flex flex-col items-center">
+                    <Image
+                      src={
+                        selectedRoom.imagen?.startsWith('http')
+                          ? selectedRoom.imagen
+                          : `${process.env.NEXT_PUBLIC_API_BASE_URL.replace(/\/$/, '')}${selectedRoom.imagen}`
+                      }
+                      alt={`Imagen actual de la habitación ${selectedRoom.numero_habitacion}`}
+                      width={120}
+                      height={120}
+                      className="object-cover rounded mb-2"
+                    />
+                    <span className="text-xs text-gray-500 mb-1">Imagen actual</span>
+                  </div>
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="w-full p-2 border rounded text-black"
+                />
+                {formData.imagen && (
+                  <p className="mt-2 text-sm text-gray-600">
+                    Imagen seleccionada: {formData.imagen.name}
+                  </p>
+                )}
+                {modalMode === 'edit' && selectedRoom && selectedRoom.imagen && !formData.imagen && (
+                  <p className="mt-1 text-xs text-gray-400">Si deseas cambiar la foto, selecciona una nueva.</p>
+                )}
               </div>
               <div className="flex justify-end space-x-2">
                 <button

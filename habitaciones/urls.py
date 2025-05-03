@@ -11,4 +11,7 @@ urlpatterns = [
         'put': 'update',
         'delete': 'destroy'
     })),
+    path('disponibles/', HabitacionViewSet.as_view({
+        'get': 'disponibles'
+    })),
 ] 

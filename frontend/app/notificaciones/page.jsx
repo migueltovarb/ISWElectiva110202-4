@@ -1,9 +1,9 @@
 'use client'
 import { useState } from 'react';
-import Image from 'next/image';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { FaHome, FaMapMarkerAlt, FaSignOutAlt, FaMoneyBill, FaBell, FaCog, FaPowerOff, FaCheck, FaTrash } from 'react-icons/fa';
+import { FaHome, FaMapMarkerAlt, FaSignOutAlt, FaMoneyBill, FaBell, FaCog, FaPowerOff, FaCheck, FaTrash, FaBed } from 'react-icons/fa';
+import Link from 'next/link';
+import { jwtDecode } from "jwt-decode";
 
 export default function Notificaciones() {
   const router = useRouter();
@@ -32,6 +32,8 @@ export default function Notificaciones() {
   ]);
 
   const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('refresh_token');
     router.push('/login');
   };
 
@@ -46,37 +48,42 @@ export default function Notificaciones() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FFF3E0]">
+    <div className="min-h-screen bg-gradient-to-br from-[#FFF3E0] to-[#FFE4C4]">
       {/* Left Sidebar */}
-      <div className="fixed left-0 top-0 h-full w-64 bg-[#8B4513] p-4 flex flex-col">
+      <div className="fixed left-0 top-0 h-full w-64 bg-gradient-to-b from-[#8B4513] to-[#A0522D] p-6 flex flex-col shadow-xl">
         {/* Menu Items */}
         <div className="flex-1 space-y-4">
-          <Link href="/home" className="flex items-center space-x-3 p-3 bg-[#CD853F] text-white rounded-lg hover:bg-[#DEB887] transition-colors">
+          <Link href="/home" className="flex items-center space-x-3 p-4 bg-[#CD853F]/20 backdrop-blur-sm text-white rounded-xl hover:bg-[#CD853F]/40 transition-all duration-300 transform hover:scale-105">
             <FaHome size={24} />
             <span className="text-lg font-semibold">Home</span>
           </Link>
           
-          <Link href="/check-in" className="flex items-center space-x-3 p-3 bg-[#CD853F] text-white rounded-lg hover:bg-[#DEB887] transition-colors">
+          <Link href="/reservar" className="flex items-center space-x-3 p-4 bg-[#CD853F]/20 backdrop-blur-sm text-white rounded-xl hover:bg-[#CD853F]/40 transition-all duration-300 transform hover:scale-105">
+            <FaBed size={24} />
+            <span className="text-lg font-semibold">Reservar</span>
+          </Link>
+          
+          <Link href="/check-in" className="flex items-center space-x-3 p-4 bg-[#CD853F]/20 backdrop-blur-sm text-white rounded-xl hover:bg-[#CD853F]/40 transition-all duration-300 transform hover:scale-105">
             <FaMapMarkerAlt size={24} />
             <span className="text-lg font-semibold">Check-In</span>
           </Link>
           
-          <Link href="/check-out" className="flex items-center space-x-3 p-3 bg-[#CD853F] text-white rounded-lg hover:bg-[#DEB887] transition-colors">
+          <Link href="/check-out" className="flex items-center space-x-3 p-4 bg-[#CD853F]/20 backdrop-blur-sm text-white rounded-xl hover:bg-[#CD853F]/40 transition-all duration-300 transform hover:scale-105">
             <FaSignOutAlt size={24} />
             <span className="text-lg font-semibold">Check-Out</span>
           </Link>
           
-          <Link href="/pagos" className="flex items-center space-x-3 p-3 bg-[#CD853F] text-white rounded-lg hover:bg-[#DEB887] transition-colors">
+          <Link href="/pagos" className="flex items-center space-x-3 p-4 bg-[#CD853F]/20 backdrop-blur-sm text-white rounded-xl hover:bg-[#CD853F]/40 transition-all duration-300 transform hover:scale-105">
             <FaMoneyBill size={24} />
             <span className="text-lg font-semibold">Pagos</span>
           </Link>
           
-          <Link href="/notificaciones" className="flex items-center space-x-3 p-3 bg-[#8B4513] text-white rounded-lg hover:bg-[#A0522D] transition-colors">
+          <Link href="/notificaciones" className="flex items-center space-x-3 p-4 bg-[#CD853F]/40 backdrop-blur-sm text-white rounded-xl hover:bg-[#CD853F]/60 transition-all duration-300 transform hover:scale-105">
             <FaBell size={24} />
             <span className="text-lg font-semibold">Notificaciones</span>
           </Link>
           
-          <Link href="/configuraciones" className="flex items-center space-x-3 p-3 bg-[#CD853F] text-white rounded-lg hover:bg-[#DEB887] transition-colors">
+          <Link href="/configuraciones" className="flex items-center space-x-3 p-4 bg-[#CD853F]/20 backdrop-blur-sm text-white rounded-xl hover:bg-[#CD853F]/40 transition-all duration-300 transform hover:scale-105">
             <FaCog size={24} />
             <span className="text-lg font-semibold">Configuraciones</span>
           </Link>
@@ -85,7 +92,7 @@ export default function Notificaciones() {
         {/* Logout Button */}
         <button 
           onClick={handleLogout}
-          className="flex items-center space-x-3 p-3 mt-4 bg-[#A0522D] text-white rounded-lg hover:bg-[#8B4513] transition-colors w-full"
+          className="flex items-center space-x-3 p-4 mt-4 bg-[#A0522D]/80 text-white rounded-xl hover:bg-[#8B4513] transition-all duration-300 transform hover:scale-105 shadow-lg"
         >
           <FaPowerOff size={24} />
           <span className="text-lg font-semibold">Cerrar Sesión</span>
@@ -93,81 +100,57 @@ export default function Notificaciones() {
       </div>
 
       {/* Main Content */}
-      <div className="ml-64">
-        {/* Top Banner */}
-        <div className="relative h-64 w-full">
-          <Image
-            src="/images/hotel-banner.jpg"
-            alt="Hotel Notifications"
-            fill
-            className="object-cover"
-            priority
-          />
-          <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center px-8">
-            <h1 className="text-4xl font-bold text-white">
-              Notificaciones
-            </h1>
-          </div>
-        </div>
+      <div className="ml-64 p-8">
+        <h1 className="text-4xl font-bold text-[#8B4513] mb-8">Notificaciones</h1>
 
-        {/* Content */}
-        <div className="p-6">
-          <div className="max-w-4xl mx-auto">
-            <div className="bg-[#FFDAB9] rounded-lg shadow-lg overflow-hidden">
-              <div className="p-6">
-                <h2 className="text-2xl font-bold text-[#8B4513] mb-6">Centro de Notificaciones</h2>
-                <div className="space-y-4">
-                  {notifications.map((notification) => (
-                    <div 
-                      key={notification.id}
-                      className={`bg-white p-4 rounded-lg transition-all ${
-                        notification.read ? 'opacity-75' : 'shadow-md'
-                      }`}
+        <div className="grid grid-cols-1 gap-6">
+          {notifications.map((notification) => (
+            <div 
+              key={notification.id}
+              className={`bg-white/90 backdrop-blur-sm p-6 rounded-2xl shadow-xl transform hover:scale-[1.02] transition-all duration-300 ${
+                notification.read ? 'opacity-75' : ''
+              }`}
+            >
+              <div className="flex justify-between items-start">
+                <div className="flex-1">
+                  <h3 className={`text-xl font-bold ${
+                    notification.read ? 'text-[#A0522D]' : 'text-[#8B4513]'
+                  }`}>
+                    {notification.title}
+                  </h3>
+                  <p className="text-[#A0522D] mt-2">{notification.message}</p>
+                  <p className="text-sm text-[#DEB887] mt-4">{notification.date}</p>
+                </div>
+                <div className="flex space-x-3">
+                  {!notification.read && (
+                    <button
+                      onClick={() => markAsRead(notification.id)}
+                      className="p-2 text-[#8B4513] hover:text-[#A0522D] transition-colors"
+                      title="Marcar como leída"
                     >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <h3 className={`text-lg font-semibold ${
-                            notification.read ? 'text-[#A0522D]' : 'text-[#8B4513]'
-                          }`}>
-                            {notification.title}
-                          </h3>
-                          <p className="text-[#A0522D] mt-1">{notification.message}</p>
-                          <p className="text-sm text-[#DEB887] mt-2">{notification.date}</p>
-                        </div>
-                        <div className="flex space-x-2">
-                          {!notification.read && (
-                            <button
-                              onClick={() => markAsRead(notification.id)}
-                              className="p-2 text-[#8B4513] hover:text-[#A0522D] transition-colors"
-                              title="Marcar como leída"
-                            >
-                              <FaCheck size={20} />
-                            </button>
-                          )}
-                          <button
-                            onClick={() => deleteNotification(notification.id)}
-                            className="p-2 text-[#8B4513] hover:text-[#A0522D] transition-colors"
-                            title="Eliminar notificación"
-                          >
-                            <FaTrash size={20} />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                      <FaCheck size={20} />
+                    </button>
+                  )}
+                  <button
+                    onClick={() => deleteNotification(notification.id)}
+                    className="p-2 text-[#8B4513] hover:text-[#A0522D] transition-colors"
+                    title="Eliminar notificación"
+                  >
+                    <FaTrash size={20} />
+                  </button>
                 </div>
               </div>
             </div>
-          </div>
+          ))}
         </div>
       </div>
 
       {/* Top Right Icons */}
-      <div className="fixed top-4 right-4 flex space-x-4">
-        <button className="p-2 bg-white rounded-full shadow-lg hover:bg-gray-100">
+      <div className="fixed top-6 right-6 flex space-x-4">
+        <button className="p-3 bg-white/90 backdrop-blur-sm rounded-full shadow-lg hover:bg-white transition-all duration-300 transform hover:scale-110">
           <FaBell size={24} className="text-[#8B4513]" />
         </button>
-        <button className="p-2 bg-white rounded-full shadow-lg hover:bg-gray-100">
+        <button className="p-3 bg-white/90 backdrop-blur-sm rounded-full shadow-lg hover:bg-white transition-all duration-300 transform hover:scale-110">
           <FaCog size={24} className="text-[#8B4513]" />
         </button>
       </div>
