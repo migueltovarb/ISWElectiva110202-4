@@ -1,5 +1,7 @@
+"use client";
 import './globals.css';
 import { Poppins } from 'next/font/google';
+import ClientProviders from './ClientProviders';
 
 // Configuración de la fuente Poppins
 const poppins = Poppins({
@@ -16,7 +18,9 @@ export default function RootLayout({ children }) {
         <meta name="description" content="Sistema de gestión para Hotel Lindo Sueño" />
       </head>
       <body className="h-full overflow-hidden font-poppins">
-        {children}
+        <ClientProviders>
+          {children}
+        </ClientProviders>
       </body>
     </html>
   );

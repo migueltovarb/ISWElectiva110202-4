@@ -1,15 +1,24 @@
 'use client'
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { FaHome, FaMapMarkerAlt, FaSignOutAlt, FaMoneyBill, FaBell, FaCog, FaPowerOff, FaBed, FaWifi, FaTv, FaSnowflake, FaShower } from 'react-icons/fa';
+import { FaHome, FaMapMarkerAlt, FaSignOutAlt, FaMoneyBill, FaBell, FaCog, FaPowerOff, FaBed, FaWifi, FaTv, FaSnowflake, FaShower, FaCalendarAlt, FaLock } from 'react-icons/fa';
 import Link from 'next/link';
 import { jwtDecode } from "jwt-decode";
+import Calendar from 'react-calendar';
+import 'react-calendar/dist/Calendar.css';
+import { useNotification } from '../../components/NotificationContext';
 
 export default function Reservar() {
   const [rooms, setRooms] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedRoom, setSelectedRoom] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [dateRange, setDateRange] = useState([new Date(), new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)]);
+  const [reservaActiva, setReservaActiva] = useState(false);
+  const [checkingReserva, setCheckingReserva] = useState(true);
   const router = useRouter();
+  const { addNotification } = useNotification();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -53,6 +62,38 @@ export default function Reservar() {
     checkAuth();
   }, [router]);
 
+  useEffect(() => {
+    const checkReservaActiva = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          setCheckingReserva(false);
+          return;
+        }
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/reservas/`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        if (!response.ok) {
+          setCheckingReserva(false);
+          return;
+        }
+        const reservas = await response.json();
+        const pagadas = reservas.filter(r => r.estado === 'pagada');
+        const checkinAceptado = reservas.filter(r => r.estado === 'checkin_aceptado');
+        // Bloquear solo si NO hay pagadas y SÍ hay al menos una con checkin_aceptado
+        setReservaActiva(pagadas.length === 0 && checkinAceptado.length > 0);
+      } catch (e) {
+        setReservaActiva(false);
+      } finally {
+        setCheckingReserva(false);
+      }
+    };
+    checkReservaActiva();
+  }, [router]);
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('refresh_token');
@@ -60,33 +101,84 @@ export default function Reservar() {
   };
 
   const handleReservar = async (roomId) => {
+    const room = rooms.find(r => r.id === roomId);
+    setSelectedRoom(room);
+    setShowModal(true);
+  };
+
+  const confirmReservar = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/reservas/crear/`, {
+      if (!token) {
+        router.push('/login');
+        return;
+      }
+
+      // Crear la reserva en la base de datos
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/reservas/`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          habitacion_id: roomId,
-          fecha_inicio: new Date().toISOString().split('T')[0], // Fecha actual
-          fecha_fin: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 7 días después
+          habitacion_id: selectedRoom.id,
+          fecha_inicio: dateRange[0].toISOString().split('T')[0],
+          fecha_fin: dateRange[1].toISOString().split('T')[0],
+          estado: 'pendiente'
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Error al crear la reserva');
+        const contentType = response.headers.get('content-type');
+        let errorMsg = 'Error al crear la reserva';
+        if (contentType && contentType.includes('application/json')) {
+          const errorData = await response.json();
+          errorMsg = JSON.stringify(errorData) || errorMsg;
+        } else {
+          errorMsg = 'Error en el servidor o endpoint no encontrado';
+        }
+        throw new Error(errorMsg);
       }
 
+      const reservaData = await response.json();
+      
+      // Solo guardamos en localStorage si la reserva se creó exitosamente
+      localStorage.setItem('ultima_reserva', JSON.stringify({
+        id: reservaData.id,
+        habitacion: selectedRoom.numero_habitacion,
+        tipo: selectedRoom.tipo_habitacion,
+        fecha_inicio: dateRange[0].toISOString().split('T')[0],
+        fecha_fin: dateRange[1].toISOString().split('T')[0],
+        noches: calculateNights(),
+        precio_noche: selectedRoom.precio,
+        total: calculateTotal(),
+        estado: 'pendiente'
+      }));
+
       // Actualizar la lista de habitaciones
-      const updatedRooms = rooms.filter(room => room.id !== roomId);
+      const updatedRooms = rooms.filter(room => room.id !== selectedRoom.id);
       setRooms(updatedRooms);
-      alert('Reserva creada exitosamente');
+      setShowModal(false);
+      
+      // Redirigir a la página de pagos
+      addNotification('Reserva creada, procede al pago', 'success');
+      router.push('/pagos');
     } catch (error) {
       console.error('Error:', error);
-      alert('Error al crear la reserva');
+      alert(error.message || 'Error al crear la reserva. Por favor, intente nuevamente.');
     }
+  };
+
+  const calculateNights = () => {
+    if (!dateRange[0] || !dateRange[1]) return 0;
+    const diffTime = Math.abs(dateRange[1] - dateRange[0]);
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  };
+
+  const calculateTotal = () => {
+    if (!selectedRoom) return 0;
+    return (selectedRoom.precio * calculateNights()).toFixed(2);
   };
 
   return (
@@ -144,8 +236,15 @@ export default function Reservar() {
       {/* Main Content */}
       <div className="ml-64 p-8">
         <h1 className="text-4xl font-bold text-[#8B4513] mb-8">Habitaciones Disponibles</h1>
-
-        {loading ? (
+        {checkingReserva ? (
+          <div className="text-center py-8 text-[#8B4513]">Verificando reservas activas...</div>
+        ) : reservaActiva ? (
+          <div className="flex flex-col items-center justify-center bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-12 mt-12">
+            <FaLock size={64} className="text-[#8B4513] mb-6" />
+            <h2 className="text-2xl font-bold text-[#8B4513] mb-4">No puedes reservar hasta finalizar tu(s) estancia(s)</h2>
+            <p className="text-[#A0522D] text-lg">Debes hacer checkout de todas tus reservas activas antes de poder reservar otra habitación.</p>
+          </div>
+        ) : loading ? (
           <div className="text-center py-8">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#8B4513] mx-auto"></div>
             <p className="mt-4 text-[#8B4513]">Cargando habitaciones...</p>
@@ -205,6 +304,74 @@ export default function Reservar() {
           <FaCog size={24} className="text-[#8B4513]" />
         </button>
       </div>
+
+      {/* Modal de Confirmación */}
+      {showModal && selectedRoom && (
+        <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50">
+          <div className="bg-white/95 backdrop-blur-md rounded-2xl p-8 max-w-2xl w-full mx-4 shadow-2xl">
+            <h2 className="text-2xl font-bold text-[#8B4513] mb-6">Confirmar Reserva</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Información de la habitación */}
+              <div className="space-y-4">
+                <h3 className="text-xl font-semibold text-[#8B4513] mb-4">Detalles de la Habitación</h3>
+                <p className="text-[#8B4513]">
+                  <span className="font-semibold">Habitación:</span> {selectedRoom.numero_habitacion}
+                </p>
+                <p className="text-[#8B4513]">
+                  <span className="font-semibold">Tipo:</span> {selectedRoom.tipo_habitacion}
+                </p>
+                <p className="text-[#8B4513]">
+                  <span className="font-semibold">Precio por noche:</span> ${selectedRoom.precio}
+                </p>
+                {selectedRoom.descripcion && (
+                  <p className="text-[#8B4513]">
+                    <span className="font-semibold">Descripción:</span> {selectedRoom.descripcion}
+                  </p>
+                )}
+              </div>
+
+              {/* Calendario y resumen */}
+              <div className="space-y-4">
+                <h3 className="text-xl font-semibold text-[#8B4513] mb-4">Selecciona tus fechas</h3>
+                <div className="calendar-container">
+                  <Calendar
+                    onChange={setDateRange}
+                    value={dateRange}
+                    selectRange={true}
+                    minDate={new Date()}
+                    className="w-full border-none rounded-xl shadow-inner"
+                    tileClassName="text-[#8B4513] hover:bg-[#CD853F]/20 transition-colors duration-200"
+                  />
+                </div>
+                <div className="mt-4 p-4 bg-[#FFF3E0] rounded-xl">
+                  <p className="text-[#8B4513]">
+                    <span className="font-semibold">Noches seleccionadas:</span> {calculateNights()}
+                  </p>
+                  <p className="text-[#8B4513]">
+                    <span className="font-semibold">Total estimado:</span> ${calculateTotal()}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-8 flex justify-end space-x-4">
+              <button
+                onClick={() => setShowModal(false)}
+                className="px-6 py-3 text-[#8B4513] hover:text-[#A0522D] transition-colors font-semibold"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmReservar}
+                className="px-6 py-3 bg-[#8B4513] text-white rounded-xl hover:bg-[#A0522D] transition-all duration-300 transform hover:scale-105 font-semibold flex items-center space-x-2"
+              >
+                <FaCalendarAlt size={20} />
+                <span>Confirmar Reserva</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 } 

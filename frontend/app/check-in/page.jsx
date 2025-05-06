@@ -4,59 +4,46 @@ import { useRouter } from 'next/navigation';
 import { FaHome, FaMapMarkerAlt, FaSignOutAlt, FaMoneyBill, FaBell, FaCog, FaPowerOff, FaBed, FaUser, FaIdCard, FaCar } from 'react-icons/fa';
 import Link from 'next/link';
 import { jwtDecode } from "jwt-decode";
+import { useNotification } from '../../components/NotificationContext';
 
 export default function CheckIn() {
   const [reservas, setReservas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const router = useRouter();
+  const { addNotification } = useNotification();
+
+  const fetchReservas = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        router.push('/login');
+        return;
+      }
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/reservas/`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      if (!response.ok) {
+        throw new Error('Error al obtener las reservas');
+      }
+      const data = await response.json();
+      console.log('Reservas recibidas en check-in:', data);
+      // Filtrar reservas pagadas y checkin_aceptado
+      const paraCheckIn = data.filter(r => r.estado === 'pagada' || r.estado === 'checkin_aceptado');
+      setReservas(paraCheckIn);
+    } catch (error) {
+      console.error('Error:', error);
+      setError('Error al cargar las reservas');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-          router.push('/login');
-          return;
-        }
-
-        const decoded = jwtDecode(token);
-        const currentTime = Date.now() / 1000;
-        if (decoded.exp && decoded.exp < currentTime) {
-          localStorage.removeItem('token');
-          localStorage.removeItem('refresh_token');
-          router.push('/login');
-          return;
-        }
-
-        // Simulación de datos de reservas
-        setReservas([
-          {
-            id: 1,
-            habitacion: "101",
-            tipo: "Suite",
-            fecha_llegada: "2024-03-20",
-            hora_llegada: "14:00",
-            estado: "Pendiente"
-          },
-          {
-            id: 2,
-            habitacion: "203",
-            tipo: "Doble",
-            fecha_llegada: "2024-03-25",
-            hora_llegada: "15:00",
-            estado: "Confirmada"
-          }
-        ]);
-      } catch (error) {
-        console.error('Error:', error);
-        setError('Error al cargar las reservas');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkAuth();
+    fetchReservas();
   }, [router]);
 
   const handleLogout = () => {
@@ -67,14 +54,25 @@ export default function CheckIn() {
 
   const handleCheckIn = async (reservaId) => {
     try {
-      // Aquí iría la lógica real de check-in
-      alert('Check-in realizado exitosamente');
-      // Actualizar el estado de la reserva
-      setReservas(reservas.map(reserva => 
-        reserva.id === reservaId 
-          ? { ...reserva, estado: 'Check-in Realizado' }
-          : reserva
-      ));
+      const token = localStorage.getItem('token');
+      if (!token) {
+        router.push('/login');
+        return;
+      }
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/reservas/${reservaId}/`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ estado: 'checkin_aceptado' }),
+      });
+      if (!response.ok) {
+        throw new Error('Error al realizar el check-in');
+      }
+      addNotification('Check-In realizado', 'success');
+      // Recargar la lista de reservas desde el backend
+      fetchReservas();
     } catch (error) {
       console.error('Error:', error);
       alert('Error al realizar el check-in');
@@ -152,37 +150,31 @@ export default function CheckIn() {
             {reservas.map((reserva) => (
               <div key={reserva.id} className="bg-white/90 backdrop-blur-sm p-6 rounded-2xl shadow-xl transform hover:scale-[1.02] transition-all duration-300">
                 <div className="flex justify-between items-start mb-4">
-                  <h2 className="text-2xl font-bold text-[#8B4513]">Habitación {reserva.habitacion}</h2>
-                  <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                    reserva.estado === 'Pendiente' ? 'bg-yellow-100 text-yellow-800' :
-                    reserva.estado === 'Confirmada' ? 'bg-green-100 text-green-800' :
-                    'bg-blue-100 text-blue-800'
-                  }`}>
-                    {reserva.estado}
-                  </span>
+                  <h2 className="text-2xl font-bold text-[#8B4513]">Habitación {reserva.habitacion.numero_habitacion}</h2>
+                  {reserva.estado === 'pagada' ? (
+                    <span className="px-3 py-1 rounded-full text-sm font-semibold bg-green-100 text-green-800">Pagada</span>
+                  ) : (
+                    <span className="px-3 py-1 rounded-full text-sm font-semibold bg-blue-100 text-blue-800">Check-in realizado</span>
+                  )}
                 </div>
-                
                 <div className="space-y-4">
                   <div className="flex items-center space-x-2 text-[#8B4513]">
                     <FaBed className="text-[#8B4513]" />
                     <span className="font-semibold">Tipo:</span>
-                    <span>{reserva.tipo}</span>
+                    <span>{reserva.habitacion.tipo_habitacion}</span>
                   </div>
-                  
                   <div className="flex items-center space-x-2 text-[#8B4513]">
                     <FaUser className="text-[#8B4513]" />
                     <span className="font-semibold">Fecha de llegada:</span>
-                    <span>{reserva.fecha_llegada}</span>
+                    <span>{reserva.fecha_inicio}</span>
                   </div>
-                  
                   <div className="flex items-center space-x-2 text-[#8B4513]">
                     <FaCar className="text-[#8B4513]" />
-                    <span className="font-semibold">Hora de llegada:</span>
-                    <span>{reserva.hora_llegada}</span>
+                    <span className="font-semibold">Fecha de salida:</span>
+                    <span>{reserva.fecha_fin}</span>
                   </div>
                 </div>
-
-                {reserva.estado === 'Pendiente' && (
+                {reserva.estado === 'pagada' && (
                   <button
                     onClick={() => handleCheckIn(reserva.id)}
                     className="w-full mt-6 bg-[#8B4513] text-white py-3 px-4 rounded-xl hover:bg-[#A0522D] transition-all duration-300 transform hover:scale-105"

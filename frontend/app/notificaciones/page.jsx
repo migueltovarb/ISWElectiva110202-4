@@ -1,35 +1,18 @@
 'use client'
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaHome, FaMapMarkerAlt, FaSignOutAlt, FaMoneyBill, FaBell, FaCog, FaPowerOff, FaCheck, FaTrash, FaBed } from 'react-icons/fa';
 import Link from 'next/link';
 import { jwtDecode } from "jwt-decode";
+import { useNotification } from '../../components/NotificationContext';
 
 export default function Notificaciones() {
   const router = useRouter();
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      title: 'Reserva Confirmada',
-      message: 'Tu reserva para la habitación 101 ha sido confirmada.',
-      date: '2024-03-15',
-      read: false
-    },
-    {
-      id: 2,
-      title: 'Recordatorio de Check-in',
-      message: 'Tu check-in está programado para mañana a las 14:00.',
-      date: '2024-03-14',
-      read: false
-    },
-    {
-      id: 3,
-      title: 'Promoción Especial',
-      message: 'Aprovecha un 20% de descuento en tu próxima reserva.',
-      date: '2024-03-13',
-      read: true
-    }
-  ]);
+  const { notifications, removeNotification, clearNotifications, markAllAsRead } = useNotification();
+
+  useEffect(() => {
+    markAllAsRead();
+  }, [markAllAsRead]);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -38,13 +21,11 @@ export default function Notificaciones() {
   };
 
   const markAsRead = (id) => {
-    setNotifications(notifications.map(notif => 
-      notif.id === id ? { ...notif, read: true } : notif
-    ));
+    // Implementation of markAsRead function
   };
 
   const deleteNotification = (id) => {
-    setNotifications(notifications.filter(notif => notif.id !== id));
+    // Implementation of deleteNotification function
   };
 
   return (
@@ -102,47 +83,37 @@ export default function Notificaciones() {
       {/* Main Content */}
       <div className="ml-64 p-8">
         <h1 className="text-4xl font-bold text-[#8B4513] mb-8">Notificaciones</h1>
-
-        <div className="grid grid-cols-1 gap-6">
-          {notifications.map((notification) => (
-            <div 
-              key={notification.id}
-              className={`bg-white/90 backdrop-blur-sm p-6 rounded-2xl shadow-xl transform hover:scale-[1.02] transition-all duration-300 ${
-                notification.read ? 'opacity-75' : ''
-              }`}
-            >
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <h3 className={`text-xl font-bold ${
-                    notification.read ? 'text-[#A0522D]' : 'text-[#8B4513]'
-                  }`}>
-                    {notification.title}
-                  </h3>
-                  <p className="text-[#A0522D] mt-2">{notification.message}</p>
-                  <p className="text-sm text-[#DEB887] mt-4">{notification.date}</p>
-                </div>
-                <div className="flex space-x-3">
-                  {!notification.read && (
-                    <button
-                      onClick={() => markAsRead(notification.id)}
-                      className="p-2 text-[#8B4513] hover:text-[#A0522D] transition-colors"
-                      title="Marcar como leída"
-                    >
-                      <FaCheck size={20} />
-                    </button>
-                  )}
-                  <button
-                    onClick={() => deleteNotification(notification.id)}
-                    className="p-2 text-[#8B4513] hover:text-[#A0522D] transition-colors"
-                    title="Eliminar notificación"
-                  >
-                    <FaTrash size={20} />
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
+        <div className="flex justify-end mb-4">
+          <button
+            onClick={clearNotifications}
+            className="bg-red-600 text-white px-4 py-2 rounded-xl hover:bg-red-700 transition-all duration-300 font-semibold flex items-center space-x-2"
+          >
+            <FaTrash />
+            <span>Limpiar bandeja de notificaciones</span>
+          </button>
         </div>
+        {notifications.length === 0 ? (
+          <div className="text-[#8B4513] text-lg">No tienes notificaciones.</div>
+        ) : (
+          <ul className="space-y-4">
+            {notifications.map((notif) => (
+              <li key={notif.id} className="bg-white/90 p-4 rounded-xl shadow flex items-center justify-between">
+                <div>
+                  <div className="font-semibold text-[#8B4513]">{notif.message}</div>
+                  <div className="text-xs text-[#A0522D] mt-1">{new Date(notif.date).toLocaleString('es-ES')}</div>
+                  <div className={`inline-block mt-1 px-2 py-1 rounded text-xs font-bold ${notif.type === 'success' ? 'bg-green-100 text-green-800' : notif.type === 'info' ? 'bg-blue-100 text-blue-800' : notif.type === 'error' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}`}>{notif.type}</div>
+                </div>
+                <button
+                  onClick={() => removeNotification(notif.id)}
+                  className="ml-4 p-2 text-[#8B4513] hover:text-red-600 transition-colors"
+                  title="Eliminar notificación"
+                >
+                  <FaTrash size={18} />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       {/* Top Right Icons */}

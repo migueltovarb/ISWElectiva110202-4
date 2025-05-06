@@ -1,17 +1,10 @@
-from django.urls import path
+from django.urls import path, include
 from .views import HabitacionViewSet
+from rest_framework.routers import DefaultRouter
+
+router = DefaultRouter()
+router.register(r'habitaciones', HabitacionViewSet)
 
 urlpatterns = [
-    path('', HabitacionViewSet.as_view({
-        'get': 'list',
-        'post': 'create'
-    })),
-    path('<int:pk>/', HabitacionViewSet.as_view({
-        'get': 'retrieve',
-        'put': 'update',
-        'delete': 'destroy'
-    })),
-    path('disponibles/', HabitacionViewSet.as_view({
-        'get': 'disponibles'
-    })),
+    path('', include(router.urls)),
 ] 
