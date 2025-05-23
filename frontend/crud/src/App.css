@@ -1,0 +1,205 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #9b6161;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.app {
+  width: 100%;
+  max-width: 600px;
+  margin: 20px;
+  background: rgb(219, 208, 208);
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+h1 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 30px;
+}
+
+.agregar-tarea {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 30px;
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.agregar-tarea input {
+  flex: 1;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+  text-align: center;
+  background: transparent;
+  color: white;
+}
+
+.agregar-tarea button {
+  padding: 12px 24px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.agregar-tarea button:hover {
+  background: #0056b3;
+}
+
+.lista-tareas {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.tarea {
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: rgb(0, 0, 0);
+}
+
+.tarea.pendiente {
+  border-left: 4px solid #ffc107;
+}
+
+.tarea.hecha {
+  border-left: 4px solid #28a745;
+  background: #f8f9fa;
+}
+
+.tarea-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.nombre {
+  font-weight: bold;
+  flex: 1;
+  text-align: center;
+  color: #333;
+}
+
+.estado {
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  text-transform: uppercase;
+  text-align: center;
+  color: #dfcfcf;
+}
+
+.tarea.pendiente .estado {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.tarea.hecha .estado {
+  background: #d4edda;
+  color: #155724;
+}
+
+.botones {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.botones button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.botones button:nth-child(1) {
+  background: #17a2b8;
+  color: white;
+}
+
+.botones button:nth-child(2) {
+  background: #6c757d;
+  color: white;
+}
+
+.botones button:nth-child(3) {
+  background: #dc3545;
+  color: white;
+}
+
+.botones button:hover {
+  opacity: 0.8;
+}
+
+.editando {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+}
+
+.editando input {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.editando button {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.editando button:first-of-type {
+  background: #28a745;
+  color: white;
+}
+
+.editando button:last-of-type {
+  background: #6c757d;
+  color: white;
+}
+
+@media (max-width: 600px) {
+  body {
+    align-items: flex-start;
+    padding: 20px 0;
+  }
+  
+  .app {
+    margin: 10px;
+  }
+  
+  .tarea-info {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  
+  .botones {
+    width: 100%;
+    justify-content: center;
+  }
+}
