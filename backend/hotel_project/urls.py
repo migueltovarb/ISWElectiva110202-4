@@ -2,20 +2,12 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
-from rest_framework import routers
-from habitaciones import views
-from django.contrib import admin
-from django.urls import path, include
-
-router = routers.DefaultRouter()
-router.register(r'habitaciones', views.HabitacionViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include(router.urls)),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     path('api/registro/', include('registro.urls')),
-    path('api/habitaciones/', include('habitaciones.urls')),
+    path('api/', include('habitaciones.urls')),
     path('api/configuraciones/', include('configuraciones.urls')),
     path('api/reservas/', include('reservas.urls')),
 ]

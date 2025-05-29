@@ -2,9 +2,9 @@ from rest_framework import viewsets
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.db.models import Q
 from .models import Habitacion, Reserva
 from .serializers import HabitacionSerializer, ReservaSerializer
+from rest_framework import serializers
 
 class HabitacionViewSet(viewsets.ModelViewSet):
     queryset = Habitacion.objects.all()
@@ -13,25 +13,23 @@ class HabitacionViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])
     def disponibles(self, request):
-        # Obtener parámetros de fecha
-        fecha_inicio = request.query_params.get('fecha_inicio', None)
-        fecha_fin = request.query_params.get('fecha_fin', None)
+        fecha_inicio = request.query_params.get('fecha_inicio')
+        fecha_fin = request.query_params.get('fecha_fin')
         
-        # Filtrar habitaciones activas
+
         habitaciones = Habitacion.objects.filter(estado=True)
         
-        # Si se proporcionan fechas, verificar disponibilidad
+
         if fecha_inicio and fecha_fin:
-            # Encontrar habitaciones que NO tienen reservas que se superpongan con las fechas solicitadas
-            reservas_conflictivas = Reserva.objects.filter(
-                Q(estado__in=['pendiente', 'pagada', 'checkin_aceptado']) &
-                (
-                    Q(fecha_inicio__lte=fecha_fin) & Q(fecha_fin__gte=fecha_inicio)
-                )
+
+            reservas_solapadas = Reserva.objects.filter(
+                fecha_inicio__lt=fecha_fin,
+                fecha_fin__gt=fecha_inicio,
+                estado__in=['pendiente', 'pagada', 'checkin_aceptado']
             ).values_list('habitacion_id', flat=True)
             
-            # Excluir habitaciones con reservas conflictivas
-            habitaciones = habitaciones.exclude(id__in=reservas_conflictivas)
+
+            habitaciones = habitaciones.exclude(id__in=reservas_solapadas)
         
         serializer = self.get_serializer(habitaciones, many=True)
         return Response(serializer.data)
@@ -41,21 +39,23 @@ class ReservaViewSet(viewsets.ModelViewSet):
     serializer_class = ReservaSerializer
 
     def perform_create(self, serializer):
-        # Verificar si ya existe una reserva para esta habitación en las fechas solicitadas
-        habitacion = serializer.validated_data['habitacion']
-        fecha_inicio = serializer.validated_data['fecha_inicio']
-        fecha_fin = serializer.validated_data['fecha_fin']
-        
-        reservas_conflictivas = Reserva.objects.filter(
-            habitacion=habitacion,
-            estado__in=['pendiente', 'pagada', 'checkin_aceptado']
-        ).filter(
-            Q(fecha_inicio__lte=fecha_fin) & Q(fecha_fin__gte=fecha_inicio)
-        )
-        
-        if reservas_conflictivas.exists():
-            from rest_framework.exceptions import ValidationError
-            raise ValidationError('Esta habitación ya está reservada para las fechas seleccionadas.')
-        
         serializer.save(usuario=self.request.user)
 
+    @action(detail=True, methods=['patch'])
+    def checkout(self, request, pk=None):
+        try:
+            reserva = self.get_object()
+            if reserva.estado != 'checkin_aceptado':
+                return Response({'error': 'La reserva no está en estado de check-in aceptado.'}, status=400)
+
+            reserva.estado = 'checkout'
+            reserva.save()
+
+            # Liberar la habitación
+            habitacion = reserva.habitacion
+            habitacion.estado = True
+            habitacion.save()
+
+            return Response({'success': 'Check-out realizado y habitación liberada.'})
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)
