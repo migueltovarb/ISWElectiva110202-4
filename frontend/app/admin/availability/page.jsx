@@ -170,7 +170,7 @@ export default function Availability() {
         {/* Top Banner */}
         <div className="h-64 relative">
           <Image
-            src="/images/hotel-banner.jpg"
+            src="/images/hotel.jpg"
             alt="Hotel Banner"
             fill
             style={{ objectFit: 'cover' }}

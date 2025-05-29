@@ -258,7 +258,7 @@ export default function Configuraciones() {
         {/* Top Banner */}
         <div className="h-64 relative">
           <Image
-            src="/images/hotel-banner.jpg"
+            src="/images/hotel.jpg"
             alt="Hotel Banner"
             fill
             style={{ objectFit: 'cover' }}
@@ -291,10 +291,11 @@ export default function Configuraciones() {
               
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="check_in_time" className="block text-sm font-medium text-gray-700 mb-1">
                     Hora de Check-in
                   </label>
                   <input
+                    id="check_in_time"
                     type="time"
                     name="check_in_time"
                     value={config.check_in_time}
@@ -304,10 +305,11 @@ export default function Configuraciones() {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="check_out_time" className="block text-sm font-medium text-gray-700 mb-1">
                     Hora de Check-out
                   </label>
                   <input
+                    id="check_out_time"
                     type="time"
                     name="check_out_time"
                     value={config.check_out_time}
@@ -337,10 +339,11 @@ export default function Configuraciones() {
               
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
                     Nombre de Usuario
                   </label>
                   <input
+                    id="username"
                     type="text"
                     name="username"
                     value={userConfig.username}
@@ -350,10 +353,11 @@ export default function Configuraciones() {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                     Correo Electrónico
                   </label>
                   <input
+                    id="email"
                     type="email"
                     name="email"
                     value={userConfig.email}
@@ -363,10 +367,11 @@ export default function Configuraciones() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700 mb-1">
                     Contraseña Actual
                   </label>
                   <input
+                    id="currentPassword"
                     type="password"
                     name="currentPassword"
                     value={userConfig.currentPassword}
@@ -376,10 +381,11 @@ export default function Configuraciones() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 mb-1">
                     Nueva Contraseña
                   </label>
                   <input
+                    id="newPassword"
                     type="password"
                     name="newPassword"
                     value={userConfig.newPassword}
@@ -389,10 +395,11 @@ export default function Configuraciones() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
                     Confirmar Nueva Contraseña
                   </label>
                   <input
+                    id="confirmPassword"
                     type="password"
                     name="confirmPassword"
                     value={userConfig.confirmPassword}

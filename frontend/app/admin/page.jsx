@@ -159,7 +159,7 @@ export default function Admin() {
         {/* Top Banner */}
         <div className="relative h-64 w-full">
           <Image
-            src="/images/hotel-admin-banner.jpg"
+            src="/images/hotel.jpg"
             alt="Hotel Admin"
             fill
             className="object-cover"

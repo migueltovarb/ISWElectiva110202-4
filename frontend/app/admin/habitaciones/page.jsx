@@ -208,7 +208,7 @@ export default function Habitaciones() {
         {/* Top Banner */}
         <div className="h-64 relative">
           <Image
-            src="/images/hotel-banner.jpg"
+            src="/images/hotel.jpg"
             alt="Hotel Banner"
             fill
             style={{ objectFit: 'cover' }}
@@ -283,12 +283,14 @@ export default function Habitaciones() {
                         <button
                           onClick={() => handleEditRoom(room)}
                           className="p-2 text-blue-600 hover:text-blue-800"
+                          data-testid="edit-button"
                         >
                           <FaEdit size={20} />
                         </button>
                         <button
                           onClick={() => handleDeleteRoom(room.id)}
                           className="p-2 text-red-600 hover:text-red-800"
+                          data-testid="delete-button"
                         >
                           <FaTrash size={20} />
                         </button>
@@ -309,7 +311,7 @@ export default function Habitaciones() {
             <h2 className="text-2xl font-bold mb-4 text-black">
               {modalMode === 'create' ? 'Nueva Habitación' : 'Editar Habitación'}
             </h2>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} role="form">
               <div className="mb-4">
                 <label className="block text-black mb-2">Número de Habitación</label>
                 <input

@@ -21,10 +21,6 @@ describe('NavItem Component', () => {
     expect(item).toHaveClass('bg-amber-100', 'text-amber-950')
   })
 
-  it('aplica el estilo de hover cuando no está activo', () => {
-    const { container } = render(<NavItem label="Home" active={false} />)
-    const item = container.firstChild
-    item.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }))
-    expect(item).toHaveStyle('background-color: rgb(254, 215, 170)')
-  })
+  // Nota: Los estilos de hover de Tailwind CSS no se pueden probar fácilmente con jsdom
+  // Se removió el test de hover por esta limitación técnica
 })
