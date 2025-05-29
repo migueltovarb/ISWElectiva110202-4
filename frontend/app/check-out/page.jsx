@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaHome, FaMapMarkerAlt, FaSignOutAlt, FaMoneyBill, FaBell, FaCog, FaPowerOff, FaBed, FaUser, FaIdCard, FaCar, FaReceipt } from 'react-icons/fa';
 import Link from 'next/link';
+import Image from 'next/image';
 import { jwtDecode } from "jwt-decode";
 import { useNotification } from '../../components/NotificationContext';
 
@@ -159,6 +160,25 @@ export default function CheckOut() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {estancias.map((estancia) => (
               <div key={estancia.id} className="bg-white/90 backdrop-blur-sm p-6 rounded-2xl shadow-xl transform hover:scale-[1.02] transition-all duration-300">
+                {/* Imagen de la habitación */}
+                <div className="w-full h-48 relative mb-4 rounded-xl overflow-hidden">
+                  {estancia.habitacion.imagen ? (
+                    <Image
+                      src={
+                        estancia.habitacion.imagen?.startsWith('http')
+                          ? estancia.habitacion.imagen
+                          : `${process.env.NEXT_PUBLIC_API_BASE_URL}/media/imagenes/habitaciones/${estancia.habitacion.imagen}`
+                      }
+                      alt={`Habitación ${estancia.habitacion.numero_habitacion}`}
+                      fill
+                      className="object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-[#F5E1C0] flex items-center justify-center">
+                      <FaBed size={48} className="text-[#8B4513]" />
+                    </div>
+                  )}
+                </div>
                 <div className="flex justify-between items-start mb-4">
                   <h2 className="text-2xl font-bold text-[#8B4513]">Habitación {estancia.habitacion.numero_habitacion}</h2>
                   <span className="bg-blue-100 text-blue-800 text-sm font-semibold px-3 py-1 rounded-full">

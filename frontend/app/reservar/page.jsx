@@ -14,6 +14,7 @@ export default function Reservar() {
   const [showModal, setShowModal] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [updatingRooms, setUpdatingRooms] = useState(false);
   const [error, setError] = useState(null);
   const [dateRange, setDateRange] = useState([new Date(), new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)]);
   const [reservaActiva, setReservaActiva] = useState(false);
@@ -39,19 +40,8 @@ export default function Reservar() {
           return;
         }
 
-        // Obtener las habitaciones disponibles
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/habitaciones/disponibles/`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-
-        if (!response.ok) {
-          throw new Error('Error al obtener las habitaciones');
-        }
-
-        const data = await response.json();
-        setRooms(data);
+        // Función para obtener habitaciones disponibles con fechas
+        await fetchAvailableRooms(token);
       } catch (error) {
         console.error('Error:', error);
         setError('Error al cargar las habitaciones');
@@ -62,6 +52,49 @@ export default function Reservar() {
 
     checkAuth();
   }, [router]);
+
+  // Nueva función para obtener habitaciones disponibles
+  const fetchAvailableRooms = async (token = null) => {
+    try {
+      setUpdatingRooms(true);
+      const authToken = token || localStorage.getItem('token');
+      if (!authToken) {
+        router.push('/login');
+        return;
+      }
+
+      // Construir URL con parámetros de fecha
+      const fechaInicio = dateRange[0].toISOString().split('T')[0];
+      const fechaFin = dateRange[1].toISOString().split('T')[0];
+      const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/habitaciones/disponibles/?fecha_inicio=${fechaInicio}&fecha_fin=${fechaFin}`;
+
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${authToken}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al obtener las habitaciones');
+      }
+
+      const data = await response.json();
+      setRooms(data);
+      setError(null);
+    } catch (error) {
+      console.error('Error:', error);
+      setError('Error al cargar las habitaciones disponibles');
+    } finally {
+      setUpdatingRooms(false);
+    }
+  };
+
+  // Efecto para actualizar habitaciones cuando cambian las fechas
+  useEffect(() => {
+    if (dateRange[0] && dateRange[1] && !loading) {
+      fetchAvailableRooms();
+    }
+  }, [dateRange]);
 
   useEffect(() => {
     const checkReservaActiva = async () => {
@@ -156,10 +189,14 @@ export default function Reservar() {
         total: calculateTotal(),
         estado: 'pendiente'
       }));
-
+      
       // Actualizar la lista de habitaciones
       const updatedRooms = rooms.filter(room => room.id !== selectedRoom.id);
       setRooms(updatedRooms);
+      
+      // Actualizar la lista completa desde el servidor
+      await fetchAvailableRooms();
+      
       setShowModal(false);
       
       // Redirigir a la página de pagos
@@ -237,6 +274,7 @@ export default function Reservar() {
       {/* Main Content */}
       <div className="ml-64 p-8">
         <h1 className="text-4xl font-bold text-[#8B4513] mb-8">Habitaciones Disponibles</h1>
+
         {checkingReserva ? (
           <div className="text-center py-8 text-[#8B4513]">Verificando reservas activas...</div>
         ) : reservaActiva ? (
@@ -256,61 +294,71 @@ export default function Reservar() {
             <span className="block sm:inline">{error}</span>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {rooms.map((room) => (
-              <div key={room.id} className="bg-white/90 backdrop-blur-sm p-6 rounded-2xl shadow-xl transform hover:scale-[1.02] transition-all duration-300">
-                {/* Imagen de la habitación */}
-                <div className="w-full h-48 relative mb-4 rounded-xl overflow-hidden">
-                  {room.imagen ? (
-                    <Image
-                      src={
-                        room.imagen?.startsWith('http')
-                          ? room.imagen
-                          : `${process.env.NEXT_PUBLIC_API_BASE_URL}/media/imagenes/habitaciones/${room.imagen}`
-                      }
-                      alt={`Habitación ${room.numero_habitacion}`}
-                      fill
-                      className="object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-[#F5E1C0] flex items-center justify-center">
-                      <FaBed size={48} className="text-[#8B4513]" />
-                    </div>
-                  )}
-                </div>
-                <div className="flex justify-between items-start mb-4">
-                  <h2 className="text-2xl font-bold text-[#8B4513]">Habitación {room.numero_habitacion}</h2>
-                  <span className="bg-green-100 text-green-800 text-sm font-semibold px-3 py-1 rounded-full">
-                    Disponible
-                  </span>
-                </div>
-                
-                <div className="space-y-4">
-                  <p className="text-[#8B4513]">
-                    <span className="font-semibold">Tipo:</span> {room.tipo_habitacion}
-                  </p>
-                  <p className="text-[#8B4513]">
-                    <span className="font-semibold">Precio por noche:</span> ${room.precio}
-                  </p>
-                  
-                  {room.descripcion && (
-                    <p className="text-[#8B4513]">
-                      <span className="font-semibold">Descripción:</span> {room.descripcion}
-                    </p>
-                  )}
-
-                  <div className="mt-6">
-                    <button
-                      onClick={() => handleReservar(room.id)}
-                      className="w-full bg-[#8B4513] text-white py-3 rounded-xl hover:bg-[#A0522D] transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center justify-center space-x-2"
-                    >
-                      <FaBed size={20} />
-                      <span>Reservar Ahora</span>
-                    </button>
-                  </div>
+          <div>
+            {updatingRooms && (
+              <div className="text-center py-4 mb-6">
+                <div className="inline-flex items-center space-x-2">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#8B4513]"></div>
+                  <span className="text-[#8B4513]">Actualizando habitaciones disponibles...</span>
                 </div>
               </div>
-            ))}
+            )}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {rooms.map((room) => (
+                <div key={room.id} className="bg-white/90 backdrop-blur-sm p-6 rounded-2xl shadow-xl transform hover:scale-[1.02] transition-all duration-300">
+                  {/* Imagen de la habitación */}
+                  <div className="w-full h-48 relative mb-4 rounded-xl overflow-hidden">
+                    {room.imagen ? (
+                      <Image
+                        src={
+                          room.imagen?.startsWith('http')
+                            ? room.imagen
+                            : `${process.env.NEXT_PUBLIC_API_BASE_URL}/media/imagenes/habitaciones/${room.imagen}`
+                        }
+                        alt={`Habitación ${room.numero_habitacion}`}
+                        fill
+                        className="object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-[#F5E1C0] flex items-center justify-center">
+                        <FaBed size={48} className="text-[#8B4513]" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex justify-between items-start mb-4">
+                    <h2 className="text-2xl font-bold text-[#8B4513]">Habitación {room.numero_habitacion}</h2>
+                    <span className="bg-green-100 text-green-800 text-sm font-semibold px-3 py-1 rounded-full">
+                      Disponible
+                    </span>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <p className="text-[#8B4513]">
+                      <span className="font-semibold">Tipo:</span> {room.tipo_habitacion}
+                    </p>
+                    <p className="text-[#8B4513]">
+                      <span className="font-semibold">Precio por noche:</span> ${room.precio}
+                    </p>
+                    
+                    {room.descripcion && (
+                      <p className="text-[#8B4513]">
+                        <span className="font-semibold">Descripción:</span> {room.descripcion}
+                      </p>
+                    )}
+
+                    <div className="mt-6">
+                      <button
+                        onClick={() => handleReservar(room.id)}
+                        className="w-full bg-[#8B4513] text-white py-3 rounded-xl hover:bg-[#A0522D] transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center justify-center space-x-2"
+                      >
+                        <FaBed size={20} />
+                        <span>Reservar Ahora</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>
