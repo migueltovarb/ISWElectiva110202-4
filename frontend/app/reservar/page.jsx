@@ -41,7 +41,7 @@ export default function Reservar() {
         }
 
         // Función para obtener habitaciones disponibles con fechas
-        await fetchAvailableRooms(token);
+        await fetchAvailableRooms(token, false); // No incluir fechas en la carga inicial
       } catch (error) {
         console.error('Error:', error);
         setError('Error al cargar las habitaciones');
@@ -54,7 +54,7 @@ export default function Reservar() {
   }, [router]);
 
   // Nueva función para obtener habitaciones disponibles
-  const fetchAvailableRooms = async (token = null) => {
+  const fetchAvailableRooms = async (token = null, includeDates = false) => {
     try {
       setUpdatingRooms(true);
       const authToken = token || localStorage.getItem('token');
@@ -63,10 +63,14 @@ export default function Reservar() {
         return;
       }
 
-      // Construir URL con parámetros de fecha
-      const fechaInicio = dateRange[0].toISOString().split('T')[0];
-      const fechaFin = dateRange[1].toISOString().split('T')[0];
-      const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/habitaciones/disponibles/?fecha_inicio=${fechaInicio}&fecha_fin=${fechaFin}`;
+      // Construir URL con parámetros de fecha solo si se especifica
+      let url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/habitaciones/disponibles/`;
+      
+      if (includeDates && dateRange[0] && dateRange[1]) {
+        const fechaInicio = dateRange[0].toISOString().split('T')[0];
+        const fechaFin = dateRange[1].toISOString().split('T')[0];
+        url += `?fecha_inicio=${fechaInicio}&fecha_fin=${fechaFin}`;
+      }
 
       const response = await fetch(url, {
         headers: {
@@ -92,7 +96,7 @@ export default function Reservar() {
   // Efecto para actualizar habitaciones cuando cambian las fechas
   useEffect(() => {
     if (dateRange[0] && dateRange[1] && !loading) {
-      fetchAvailableRooms();
+      fetchAvailableRooms(null, true); // Incluir fechas solo cuando se cambian
     }
   }, [dateRange]);
 
@@ -195,7 +199,7 @@ export default function Reservar() {
       setRooms(updatedRooms);
       
       // Actualizar la lista completa desde el servidor
-      await fetchAvailableRooms();
+      await fetchAvailableRooms(null, true); // Incluir fechas para verificar disponibilidad
       
       setShowModal(false);
       
