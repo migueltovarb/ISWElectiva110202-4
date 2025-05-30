@@ -1,8 +1,0 @@
-{
-  "/admin/availability/page": "app/admin/availability/page.js",
-  "/admin/habitaciones/page": "app/admin/habitaciones/page.js",
-  "/admin/home/page": "app/admin/home/page.js",
-  "/home/page": "app/home/page.js",
-  "/login/page": "app/login/page.js",
-  "/reservar/page": "app/reservar/page.js"
-}
