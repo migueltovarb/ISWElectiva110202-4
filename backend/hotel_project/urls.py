@@ -12,8 +12,9 @@ urlpatterns = [
     path('api/reservas/', include('reservas.urls')),
 ]
 
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# Servir archivos media tanto en desarrollo como en producción (Azure)
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
 '''
 Usamos modelviewset para hace todos los metodos de un CRUD
 Como usar los metodos de un CRUD

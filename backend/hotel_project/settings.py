@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -27,8 +28,19 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
+# Configuración de archivos media para Azure
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+if os.environ.get('WEBSITE_HOSTNAME'):  # Detecta si está en Azure
+    # En Azure
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+    # Azure permite archivos temporales en /tmp
+    AZURE_MEDIA_ROOT = '/tmp/media'
+    if not os.path.exists(AZURE_MEDIA_ROOT):
+        os.makedirs(AZURE_MEDIA_ROOT, exist_ok=True)
+    MEDIA_ROOT = AZURE_MEDIA_ROOT
+else:
+    # En desarrollo local
+    MEDIA_ROOT = BASE_DIR / 'media'
 
 
 # Application definition
@@ -102,7 +114,8 @@ DATABASES = {
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
-    "https://witty-flower-0ef1c3b10.6.azurestaticapps.net"
+    "https://witty-flower-0ef1c3b10.6.azurestaticapps.net",
+    "https://backendhotelindosueno.azurewebsites.net",  # Tu backend en Azure
 ]
 
 CORS_ALLOW_CREDENTIALS = True
