@@ -87,10 +87,10 @@ WSGI_APPLICATION = 'hotel_project.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'hotel_habitaciones_db',
-        'USER': 'postgres',
-        'PASSWORD': 'admin123',
-        'HOST': 'localhost',
+        'NAME': 'sistema_hotellindosueno',
+        'USER': 'sistema_hotellindosueno_user',
+        'PASSWORD': 'Q6VcyRR7sYmkpFQsoBx8tWMFB4QHYArY',
+        'HOST': 'dpg-d0t1212li9vc73a4nii0-a.oregon-postgres.render.com',
         'PORT': '5432',
         'CONN_MAX_AGE': 300,
         'OPTIONS': {
