@@ -1,0 +1,20 @@
+{
+  "/_not-found/page": "/_not-found",
+  "/favicon.ico/route": "/favicon.ico",
+  "/admin/availability/page": "/admin/availability",
+  "/admin/configuraciones/page": "/admin/configuraciones",
+  "/admin/home/page": "/admin/home",
+  "/admin/notificaciones/page": "/admin/notificaciones",
+  "/admin/page": "/admin",
+  "/admin/habitaciones/page": "/admin/habitaciones",
+  "/check-in/page": "/check-in",
+  "/check-out/page": "/check-out",
+  "/configuraciones/page": "/configuraciones",
+  "/home/page": "/home",
+  "/page": "/",
+  "/notificaciones/page": "/notificaciones",
+  "/pagos/page": "/pagos",
+  "/login/page": "/login",
+  "/reservar/page": "/reservar",
+  "/register/page": "/register"
+}
