@@ -3,8 +3,8 @@ import json
 
 # Datos de prueba para login
 login_data = {
-    "username": "admin",  # Cambia por un usuario válido
-    "password": "admin123"  # Cambia por la contraseña correcta
+    "username": "Maria",  # Cambia por un usuario válido
+    "password": "1234"  # Cambia por la contraseña correcta
 }
 
 # Obtener token de autenticación
@@ -19,7 +19,7 @@ try:
         
         # Datos de prueba para reserva
         reserva_data = {
-            "habitacion_id": 1,  # ID de una habitación existente
+            "habitacion_id": 15,  # ID de una habitación existente
             "fecha_inicio": "2025-06-01",
             "fecha_fin": "2025-06-05",
             "estado": "pendiente"
