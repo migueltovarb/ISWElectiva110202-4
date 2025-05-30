@@ -167,7 +167,7 @@ export default function CheckOut() {
                       src={
                         estancia.habitacion.imagen?.startsWith('http')
                           ? estancia.habitacion.imagen
-                          : `${process.env.NEXT_PUBLIC_API_BASE_URL}/media/imagenes/habitaciones/${estancia.habitacion.imagen}`
+                          : `${process.env.NEXT_PUBLIC_API_BASE_URL}/media/habitaciones/${estancia.habitacion.imagen}`
                       }
                       alt={`Habitación ${estancia.habitacion.numero_habitacion}`}
                       fill

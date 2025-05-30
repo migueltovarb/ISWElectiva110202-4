@@ -373,7 +373,7 @@ export default function Habitaciones() {
                       src={
                         selectedRoom.imagen?.startsWith('http')
                           ? selectedRoom.imagen
-                          : `${process.env.NEXT_PUBLIC_API_BASE_URL}/media/imagenes/habitaciones/${selectedRoom.imagen}`
+                          : `${process.env.NEXT_PUBLIC_API_BASE_URL}/media/habitaciones/${selectedRoom.imagen}`
                       }
                       alt={`Imagen actual de la habitación ${selectedRoom.numero_habitacion}`}
                       width={120}

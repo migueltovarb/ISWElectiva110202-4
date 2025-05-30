@@ -317,7 +317,7 @@ export default function Reservar() {
                         src={
                           room.imagen?.startsWith('http')
                             ? room.imagen
-                            : `${process.env.NEXT_PUBLIC_API_BASE_URL}/media/imagenes/habitaciones/${room.imagen}`
+                            : `${process.env.NEXT_PUBLIC_API_BASE_URL}/media/habitaciones/${room.imagen}`
                         }
                         alt={`Habitación ${room.numero_habitacion}`}
                         fill
@@ -393,7 +393,7 @@ export default function Reservar() {
                       src={
                         selectedRoom.imagen?.startsWith('http')
                           ? selectedRoom.imagen
-                          : `${process.env.NEXT_PUBLIC_API_BASE_URL}/media/imagenes/habitaciones/${selectedRoom.imagen}`
+                          : `${process.env.NEXT_PUBLIC_API_BASE_URL}/media/habitaciones/${selectedRoom.imagen}`
                       }
                       alt={`Habitación ${selectedRoom.numero_habitacion}`}
                       fill

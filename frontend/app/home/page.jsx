@@ -269,7 +269,7 @@ export default function Home() {
                             src={
                               reserva.habitacion.imagen?.startsWith('http')
                                 ? reserva.habitacion.imagen
-                                : `${process.env.NEXT_PUBLIC_API_BASE_URL}/media/imagenes/habitaciones/${reserva.habitacion.imagen}`
+                                : `${process.env.NEXT_PUBLIC_API_BASE_URL}/media/habitaciones/${reserva.habitacion.imagen}`
                             }
                             alt={`Habitación ${reserva.habitacion.numero_habitacion}`}
                             width={100}
