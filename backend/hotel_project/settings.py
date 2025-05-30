@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-g66mkh#wj)wi+$_vm+hsc$o8t@b)2-a@4zx2nl!(5_)po9y%e=
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
@@ -102,6 +102,7 @@ DATABASES = {
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "https://witty-flower-0ef1c3b10.6.azurestaticapps.net"
 ]
 
 CORS_ALLOW_CREDENTIALS = True
