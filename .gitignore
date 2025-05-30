@@ -50,7 +50,6 @@ __pycache__/
 venv/
 ENV/
 env/
->>>>>>> origin/develop
 build/
 develop-eggs/
 dist/
