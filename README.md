@@ -55,9 +55,3 @@ npm run test:coverage
  **Javier Ordoñez** y **Danilo Montesuma**
 
 ---
-
-<div align="center">
-
-**⭐ ¡Dale una estrella si te gusta el proyecto! ⭐**
-
-</div>
