@@ -49,17 +49,10 @@ npm run test:coverage
 
 **Cobertura actual: 94%** ✅
 
-## 📁 Estructura
-
-```
-📂 backend/          # API Django
-📂 frontend/         # App Next.js  
-📂 .github/         # CI/CD
-```
 
 ## 👥 Desarrolladores
 
-**Diego Cerón** y **Javier Ordóñez**
+ **Javier Ordoñez** y **Danilo Montesuma**
 
 ---
 
